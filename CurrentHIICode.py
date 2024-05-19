@@ -9,8 +9,9 @@ This program calculates
     the  free-free continuum optical depth (also tau?),
     and radio recombination line optical depth at the line center (tau_L)
 """ 
-from astropy.constants import k_B, c, e
+from astropy.constants import e
 from astropy import units as u
+import astropy as np
 
 # User input
 #n_e = float(input("Enter electron density (cm**-3): "))
@@ -58,7 +59,7 @@ def line_center_opacity(EM, weird_nu, T_e):
     """
 # Function to calculate continuum temperature T_b, the brightness temperature of free-free emission
 def continuum_temperature(T_e,tau):
-    return (T_e(1-e**-tau))
+    return (T_e(1-e**(-tau)))
     """
     T_b, one of the main goals of this program
 
@@ -71,11 +72,10 @@ def continuum_temperature(T_e,tau):
 
 # Function to calculate radio recombination brightness temperature T_L
 def radio_recombination_brightness(T_e,tau_L):
-   return(T_e(1-e**-tau_L))
+   return (T_e(1-e**(-tau_L)))
    """
     T_L is the other main calculation of this program.
-    T_L = T_e * tau_L 
-    OR T_L = T_e(1-e**-(tau_L)) ?
+  T_L = T_e(1-e^-(tau_L)) 
 
     Inputs:
         T_e :: electron temp
@@ -87,3 +87,5 @@ def radio_recombination_brightness(T_e,tau_L):
 # Calculating and printing results
 print("Continuum temperature: {:.2f} K".format(continuum_temperature(T_e, continuum_optical_depth)))
 print("Radio recombination brightness: {:.2f} K".format(radio_recombination_brightness(T_e, line_center_opacity)))
+#print(f"Continuum temperature: {T_b:.2f}")
+#print(f"Radio recombination brightness: {T_L:.2f}")
