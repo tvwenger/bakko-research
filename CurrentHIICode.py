@@ -1,3 +1,4 @@
+
 """
 CurrentHIICode.py
 Ryan Bakko - 5/20/2024
@@ -60,7 +61,7 @@ def line_center_opacity(EM, weird_nu, T_e):
 
 
 # Function to calculate either continuum temperature T_b, the brightness temperature of free-free emission OR radio recombination brightness temperature, T_L
-def brightness_temperature(T_e, tau, tau_L, calculation_type):
+def brightness_temperature(T_e, tau):
     """
     Calculates either continuum or recombination line brightness temperature.
 
@@ -72,17 +73,8 @@ def brightness_temperature(T_e, tau, tau_L, calculation_type):
     Outputs:
         T_b OR T_L :: brightness temperature (K) of either continuum or line
     """
-    if calculation_type == "continuum":
-        # continuum brightness temp of free-free emission, T_b
-        T_b = T_e * (1 - np.exp(-tau))
-        return T_b
-    elif calculation_type == "line":
-        # Brightness temperature of radio recombination emission line, T_L
-        T_L = T_e * (1-np.exp(-tau_L))
-        return T_L
-    else:
-        raise ValueError("Invalid calculation type. Please choose 'continuum' or 'line'.")
-    #how to choose?
+    return T_e * (1 - np.exp(-tau))
+    #how to choose? TODO: Give either “tau” or “tau_L” and have one equation to calculate either line or continuum.
 
 def main():
     # User input
@@ -99,8 +91,10 @@ def main():
     weird_nu = weird_nu * u.kHz
 
     # Calculating and printing results
-    print("Continuum temperature: {:.2f} K".format(continuum_temperature(T_e, continuum_optical_depth)))
-    print("Radio recombination brightness: {:.2f} K".format(radio_recombination_brightness(T_e, line_center_opacity)))
+    tau_c = continuum_optical_depth(EM, nu, T_e)
+    tau_l = line_center_opacity(EM, weird_nu, T_e)
+    print("Continuum temperature: {:.2f} K".format(brightness_temperature(T_e, tau_c)))
+    print("Radio recombination brightness: {:.2f} K".format(brightness_temperature(T_e, tau_l)))
     #print(f"Continuum temperature: {T_b:.2f}")
     #print(f"Radio recombination brightness: {T_L:.2f}")
 
