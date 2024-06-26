@@ -11,10 +11,8 @@ This program calculates
     and radio recombination line optical depth at the line center (tau_L)
 """ 
 
-from astropy.constants import c
 from astropy import units as u
 import numpy as np
-
 
 
 #tau
@@ -81,8 +79,10 @@ def main():
     #n_e = float(input("Enter electron density (cm**-3): "))
     T_e = float(input("Enter electron temperature (K): ")) * u.K # TODO: do this elsewhere ---DONE!
     nu = float(input("Enter frequency (GHz): ")) * u.GHz
-    EM = float(input("Enter emission measure (EM / cm-6 pc): ")) * (u.EM /(u.cm**-6 * u.pc))
-    weird_nu = float(input("Enter width of the spectral line (delta_v / KHz)**-1: ")) * (u.delta_v / u.KHz**-1)
+    EM = float(input("Enter emission measure (EM / cm-6 pc): ")) * ((u.cm**-6 * u.pc))
+    #removed EM from units
+    weird_nu = float(input("Enter width of the spectral line (delta_v / KHz)**-1: ")) * (u.KHz**-1)
+    #removed u.delta_v
 
     # Convert input values to astropy units
     T_e = T_e * u.K
