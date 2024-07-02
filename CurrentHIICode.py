@@ -15,7 +15,7 @@ from astropy import units as u
 import numpy as np
 
 
-#tau
+#tau, continuum optical depth
 def continuum_optical_depth(EM, nu, T_e):
     """
     The continuum optical depth (tau), is found using the emission measure, frequency (GHz), and electron temp (T_e = T).
@@ -31,16 +31,12 @@ def continuum_optical_depth(EM, nu, T_e):
         tau :: continuum optical depth
     This can be used to calculate T_b
     """
-    # TODO: organize function comments like above -- Done
-    # 3.014e-2
-    # products: not (a)(b) is: a * b
-    # (EM / cm-6 pc) TODO: fix units everywhere -- Done
-    # Temperature xample: T.to("K").value/1.0e4
-    return((3.014e-2)*((T_e)**(-3/2))*(nu**-2)*EM.to("EM / cm-6 pc").value)
+    # Rewrote equation without free free gaunt factor
+    return((3.28e-7) * ((T_e.to("K").value)**(-1.35)) * (nu.to("GHz").value**-2.1) * EM.to("cm-6 pc").value)
 
 
 #tau_L, radio recombination line optical depth at the line center
-def line_center_opacity(EM, weird_nu, T_e):
+def line_center_opacity(EM, spectral_line_width, T_e):
     
     """
     The radio recombination line optical depth at the line center (tau_L) is calculated using emission measure, 
@@ -49,13 +45,13 @@ def line_center_opacity(EM, weird_nu, T_e):
     Inputs:
         T_e :: electron temp (K)
         EM :: Emission measure (EM / cm-6 pc)
-        weird_nu :: width of the spectral line (delta_v/KHz)**-1
+        spectral_line_width :: width of the spectral line (delta_v/KHz)**-1
 
     Outputs:
         tau_L :: radio recombination line optical depth at the line center
     This can be used to calculate T_L
     """
-    return((1.92e3)*(T_e**(-5/2))*EM.to("EM / cm-6 pc")*weird_nu**-1)
+    return((1.92e3) * ((T_e.to("K").value/1e4)**(-5/2)) * (EM.to("cm-6 pc").value) * ((spectral_line_width.to("kHz").value)**-1))
 
 
 # Function to calculate either continuum temperature T_b, the brightness temperature of free-free emission OR radio recombination brightness temperature, T_L
@@ -75,26 +71,32 @@ def brightness_temperature(T_e, tau):
     #how to choose? TODO: Give either “tau” or “tau_L” and have one equation to calculate either line or continuum.
 
 def main():
+    """
     # User input
     #n_e = float(input("Enter electron density (cm**-3): "))
-    T_e = float(input("Enter electron temperature (K): ")) * u.K # TODO: do this elsewhere ---DONE!
-    nu = float(input("Enter frequency (GHz): ")) * u.GHz
-    EM = float(input("Enter emission measure (EM / cm-6 pc): ")) * ((u.cm**-6 * u.pc))
-    #removed EM from units
-    weird_nu = float(input("Enter width of the spectral line (delta_v / KHz)**-1: ")) * (u.KHz**-1)
-    #removed u.delta_v
+    T_e = float(input("Enter electron temperature (K): ")) 
+    nu = float(input("Enter frequency (GHz): "))
+    EM = float(input("Enter emission measure (cm-6 pc): "))
+    spectral_line_width = float(input("Enter width of the spectral line (kHz): "))
+    """
+    T_e = 8000.0
+    nu = 9.0
+    EM = 1000.0
+    spectral_line_width = 1000.0
 
     # Convert input values to astropy units
     T_e = T_e * u.K
     nu = nu * u.GHz
     EM = EM * (u.pc * u.cm**-6)
-    weird_nu = weird_nu * u.kHz
+    spectral_line_width = spectral_line_width * u.kHz
+
+    print(f"tau_cont = {continuum_optical_depth(EM, nu, T_e):.3e}")
 
     # Calculating and printing results
     tau_c = continuum_optical_depth(EM, nu, T_e)
-    tau_l = line_center_opacity(EM, weird_nu, T_e)
-    print("Continuum temperature: {:.2f} K".format(brightness_temperature(T_e, tau_c)))
-    print("Radio recombination brightness: {:.2f} K".format(brightness_temperature(T_e, tau_l)))
+    tau_l = line_center_opacity(EM, spectral_line_width, T_e)
+    print("Continuum temperature: {:.2f} ".format(brightness_temperature(T_e, tau_c)))
+    print("Radio recombination brightness: {:.2f} ".format(brightness_temperature(T_e, tau_l)))
     #print(f"Continuum temperature: {T_b:.2f}")
     #print(f"Radio recombination brightness: {T_L:.2f}")
 
