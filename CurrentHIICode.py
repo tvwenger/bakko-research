@@ -1,104 +1,131 @@
-
 """
 CurrentHIICode.py
-Ryan Bakko - 5/20/2024
 
-This program calculates 
-    the radio continuum temperature (T_b),  
-    the radio recombination brightness temperature (T_L),
-    the optical depth (tau),
-    the  free-free continuum optical depth (also tau, explained below),
-    and radio recombination line optical depth at the line center (tau_L)
-""" 
+Simulate radio continuum and radio recombination line observations of
+Galactic HII regions.
+
+Ryan Bakko - 5/20/2024
+Ryan Bakko & Trey Wenger - July 2024
+"""
+
+import sys
 
 from astropy import units as u
+from astropy import constants as c
 import numpy as np
 
 
-#tau, continuum optical depth
 def continuum_optical_depth(EM, nu, T_e):
     """
-    The continuum optical depth (tau), is found using the emission measure, frequency (GHz), and electron temp (T_e = T).
-    The optical depth (tau) is simlar to the  free-free continuum optical depth (tau). 
-    Optical depth requires the free-free gaunt factor,  free-free continuum optical depth does not.
+    Calculate the radio continuum optical depth.
+    Equation 4.60 from Condon & Ransom ERA textbook.
 
     Inputs:
-        EM :: Emission measure (pc cm-6)
-        nu :: Observation frequency (GHz)
-        T_e :: electron temperature (K)
+        EM :: Emission measure (with units)
+        nu :: Observation frequency (with units)
+        T_e :: electron temperature (with units)
 
     Outputs:
         tau :: continuum optical depth
-    This can be used to calculate T_b
     """
-    # Rewrote equation without free free gaunt factor
-    return((3.28e-7) * ((T_e.to("K").value)**(-1.35)) * (nu.to("GHz").value**-2.1) * EM.to("cm-6 pc").value)
+    return (
+        3.28e-7
+        * ((T_e.to("K").value / 1.0e4) ** -1.35)
+        * (nu.to("GHz").value ** -2.1)
+        * EM.to("cm-6 pc").value
+    )
 
 
-#tau_L, radio recombination line optical depth at the line center
-def line_center_opacity(EM, spectral_line_width, T_e):
-    
+def line_center_opacity(EM, fwhm, T_e):
     """
-    The radio recombination line optical depth at the line center (tau_L) is calculated using emission measure, 
-    electronm temp, and werid nu (the width of the spectral line).
+    Calculate the radio recombination line optical depth at the line center.
+    Equation 7.96 from Condon & Ransom ERA textbook.
 
     Inputs:
-        T_e :: electron temp (K)
-        EM :: Emission measure (EM / cm-6 pc)
-        spectral_line_width :: width of the spectral line (delta_v/KHz)**-1
+        EM :: Emission measure (with units)
+        fwhm :: FWHM line width in frequency units (with units)
+        T_e :: electron temperature (with units)
 
     Outputs:
         tau_L :: radio recombination line optical depth at the line center
-    This can be used to calculate T_L
     """
-    return((1.92e3) * ((T_e.to("K").value/1e4)**(-5/2)) * (EM.to("cm-6 pc").value) * ((spectral_line_width.to("kHz").value)**-1))
+    return (
+        (1.92e3)
+        * (T_e.to("K").value ** -2.5)
+        * (EM.to("cm-6 pc").value)
+        * (fwhm.to("kHz").value ** -1)
+    )
 
 
-# Function to calculate either continuum temperature T_b, the brightness temperature of free-free emission OR radio recombination brightness temperature, T_L
 def brightness_temperature(T_e, tau):
     """
-    Calculates either continuum or recombination line brightness temperature.
+    Calculates the brightness temperature.
 
     Inputs:
-        Te :: electron temperature (K)
-        tau :: Optical depth (either continuum or line) 
-        OR tau_L :: radio recombination line optical depth at the line center
+        Te :: electron temperature (with units)
+        tau :: Optical depth (unitless)
 
     Outputs:
-        T_b OR T_L :: brightness temperature (K) of either continuum or line
+        T_b :: brightness temperature (with units)
     """
     return T_e * (1 - np.exp(-tau))
-    #how to choose? TODO: Give either “tau” or “tau_L” and have one equation to calculate either line or continuum.
 
-def main():
+
+def main(T_e, nu, EM, fwhm):
     """
-    # User input
-    #n_e = float(input("Enter electron density (cm**-3): "))
-    T_e = float(input("Enter electron temperature (K): ")) 
-    nu = float(input("Enter frequency (GHz): "))
-    EM = float(input("Enter emission measure (cm-6 pc): "))
-    spectral_line_width = float(input("Enter width of the spectral line (kHz): "))
+    Simulate radio continuum and radio recombination line observations of a Galactic HII region.
+
+    Inputs:
+        T_e :: electron temperature (with units)
+        nu :: frequency (with units)
+        EM :: emission measure (with units)
+        fwhm :: FWHM line width in velocity units (with units)
+
+    Outputs:
+        Nothing
     """
-    T_e = 8000.0
-    nu = 9.0
-    EM = 1000.0
-    spectral_line_width = 1000.0
+    # TODO: calculate line width from temperature
+    print(f"T_e = {T_e.to('K'):.1f}")
+    print(f"nu = {nu.to('MHz'):.1f}")
+    print(f"EM = {EM.to('pc cm-6'):.1e}")
+    print(f"fwhm = {fwhm.to('km/s'):.1f}")
+    print()
 
-    # Convert input values to astropy units
-    T_e = T_e * u.K
-    nu = nu * u.GHz
-    EM = EM * (u.pc * u.cm**-6)
-    spectral_line_width = spectral_line_width * u.kHz
+    # convert FWHM to frequency units
+    fwhm_freq = nu * fwhm / c.c
 
-    print(f"tau_cont = {continuum_optical_depth(EM, nu, T_e):.3e}")
-
-    # Calculating and printing results
+    # Continuum optical depth
     tau_c = continuum_optical_depth(EM, nu, T_e)
-    tau_l = line_center_opacity(EM, spectral_line_width, T_e)
-    print("Continuum temperature: {:.2f} ".format(brightness_temperature(T_e, tau_c)))
-    print("Radio recombination brightness: {:.2f} ".format(brightness_temperature(T_e, tau_l)))
-    #print(f"Continuum temperature: {T_b:.2f}")
-    #print(f"Radio recombination brightness: {T_L:.2f}")
+    print(f"tau_c = {tau_c:.3e}")
+
+    # RRL line center optical depth
+    tau_l = line_center_opacity(EM, fwhm_freq, T_e)
+    print(f"tau_l = {tau_l:.3e}")
+
+    # Brightness temperature
+    TB_c = brightness_temperature(T_e, tau_c)
+    TB_l = brightness_temperature(T_e, tau_l)
+    print(f"TB_c = {TB_c.to('mK'):.1f}")
+    print(f"TB_l = {TB_l.to('mK'):.1f}")
+
+    # line-to-continuum ratio
+    line_to_cont = TB_l / TB_c
+    print(f"line-to-continuum ratio = {line_to_cont:.3f}")
+
 
 if __name__ == "__main__":
-    main()
+    # Read inputs from command line
+    # e.g. python CurrentHIICode.py 8000.0 7.0 1000.0 25.0
+    if len(sys.argv) > 1:
+        T_e = float(sys.argv[1]) * u.K
+        nu = float(sys.argv[2]) * u.GHz
+        EM = float(sys.argv[3]) * u.pc / u.cm**6
+        fwhm = float(sys.argv[4]) * u.km / u.s
+    else:
+        print("Using default parameters")
+        T_e = 8000.0 * u.K
+        nu = 7.0 * u.GHz
+        EM = 1000.0 * u.pc / u.cm**6
+        fwhm = 25.0 * u.km / u.s
+
+    main(T_e, nu, EM, fwhm)
