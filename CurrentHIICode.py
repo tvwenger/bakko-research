@@ -1,5 +1,5 @@
 """
-CurrentHIICode.py
+CurrentHIICode2.py
 
 Simulate radio continuum and radio recombination line observations of
 Galactic HII regions.
@@ -14,6 +14,27 @@ from astropy import units as u
 from astropy import constants as c
 import numpy as np
 
+def fwhm(T_e):
+    """
+    Find the spectral width using Temperature
+    Equation 7.35 from Essential Radio Astronomy textbook
+
+    Inputs:
+        T_e :: electron temp (K)
+        M :: mass (g)
+        k :: Boltzmann constant? (erg K**-1)
+        c :: spped of light (cm/s)
+        v_0 :: inital (GHz)
+
+    Output:
+        delta_v :: fwhm (Hz)
+    """ 
+    #struggling with formatting this equation into my code
+    return (
+        ((8 * ln(2) * k) / c**2 )**0.5
+        * (T_e.to("K").value / M)**0.5
+        * v_0
+    )
 
 def continuum_optical_depth(EM, nu, T_e):
     """
@@ -84,12 +105,16 @@ def main(T_e, nu, EM, fwhm):
     Outputs:
         Nothing
     """
-    # TODO: calculate line width from temperature
+    # TODO: calculate line width from temperature- above
     print(f"T_e = {T_e.to('K'):.1f}")
     print(f"nu = {nu.to('MHz'):.1f}")
     print(f"EM = {EM.to('pc cm-6'):.1e}")
     print(f"fwhm = {fwhm.to('km/s'):.1f}")
     print()
+
+# Iterate over the array of frequencies- NEW
+    for freq in nu:
+        print(f"nu = {freq.to('MHz'):.1f}")
 
     # convert FWHM to frequency units
     fwhm_freq = nu * fwhm / c.c
