@@ -4,6 +4,8 @@ Experiments with forward modeling (despite the name!)
 Ryan Bakko & Trey Wenger - August 2024
 
 TODO: add more complete docstrings to every function!
+
+TODO: more work
 """
 
 import numpy as np
