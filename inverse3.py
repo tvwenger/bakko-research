@@ -21,7 +21,7 @@ def forward_model(freqs, physical_params, nu_0):
     Inputs:
         freqs :: 1-D array of scalars (GHz)
             Frequencies at which to evaluate the spectrum
-        physical_params :: 4-length array of scalars
+        physical_params :: 3-length array of scalars
             physical_params[0] = Electron temperature (K)
             physical_params[1] = Emission measure (pc cm-6)
             physical_params[2] = Non-thermal FWHM line width in velocity units (km s-1)
