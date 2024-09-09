@@ -13,6 +13,92 @@ from astropy import units as u
 from astropy import constants as c
 import CurrentHIICode
 
+
+# Step 1 of Monte Carlo: Shuffle Data
+def shuffle_data(data):
+    """
+    Shuffles the input data.
+    
+    Parameters:
+    data: np.array
+        Array of data points to shuffle.
+    
+    Returns:
+    np.array
+        Shuffled data.
+    """
+    shuffled_data = np.copy(data)
+    np.random.shuffle(shuffled_data)
+    return shuffled_data
+
+# Step 2: Monte Carlo Least Squares Fitting
+def monte_carlo_least_squares(data_x, data_y, model_func, p0, num_iterations=1000):
+    """
+    Performs Monte Carlo least squares fitting multiple times on shuffled datasets.
+    
+    Parameters:
+    data_x: np.array
+        Independent variable data points (e.g., frequencies).
+    data_y: np.array
+        Dependent variable data points (e.g., brightness temperature).
+    model_func: callable
+        The forward model function to fit.
+    p0: np.array
+        Initial guess for the parameters.
+    num_iterations: int
+        Number of Monte Carlo iterations.
+        
+    Returns:
+    np.array
+        Array of fitted parameters from each iteration.
+    """
+    fitted_params = []
+
+    for i in range(num_iterations):
+        # Shuffle the data (here I shuffle the y-data, but it could be x-data as well)
+        shuffled_y = shuffle_data(data_y)
+        
+        # Perform least squares fitting
+        result = least_squares(lambda params: model_func(data_x, params) - shuffled_y, p0)
+        
+        # Save the fitted parameters
+        fitted_params.append(result.x)
+
+    return np.array(fitted_params)
+
+# Step 3: Plotting the results
+def plot_monte_carlo_results(fitted_params, param_names):
+    """
+    Plots the Monte Carlo results, including posterior distributions and uncertainty intervals.
+    
+    Parameters:
+    fitted_params: np.array
+        Array of fitted parameters from Monte Carlo simulation.
+    param_names: list
+        List of parameter names corresponding to the columns in fitted_params.
+    """
+    num_params = fitted_params.shape[1]
+    
+    fig, axes = plt.subplots(num_params, 2, figsize=(10, 5 * num_params))
+    
+    for i in range(num_params):
+        param_vals = fitted_params[:, i]
+        
+        # Plot histogram for posterior distribution
+        axes[i, 0].hist(param_vals, bins=30, density=True, alpha=0.75)
+        axes[i, 0].set_title(f'Posterior Distribution for {param_names[i]}')
+        
+        # Plot uncertainty interval (mean and standard deviation)
+        mean = np.mean(param_vals)
+        std_dev = np.std(param_vals)
+        axes[i, 1].errorbar(1, mean, yerr=std_dev, fmt='o')
+        axes[i, 1].set_title(f'Uncertainty Interval for {param_names[i]}')
+
+    plt.tight_layout()
+    plt.show()
+
+# End of New Monte Carlo additions
+
 def forward_model(freqs, physical_params, nu_0):
     """
     Predicts an observed radio recombination line and radio continuum
