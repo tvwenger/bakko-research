@@ -134,4 +134,21 @@
    3. Read in the database, and generate plots of HII region properties (positions, LSR velocity, longitude-velocity diagram, etc.)
    </details>
 
+### 9. Testing `physiokinematic`
 
+    **Status: New**
+
+    *Learning objective*: Understand the `physiokinematic` forward model
+
+    *Criteria for success*: Run the "test.ipynb" example notebook
+
+    <details>
+    I have updated the `physiokineamtic` package and put it on Github: https://github.com/tvwenger/physiokinematic
+
+    Please fork the repository and start investigating the code! Some things to consider:
+    1. Try to understand what the programs do
+    2. Try to install and run the programs
+    3. Specifically, try to run the "test.ipynb" notebook and understand what it is doing
+    
+    As you work through these steps, note any questions or possible issues that you notice or encounter.
+    </details>
